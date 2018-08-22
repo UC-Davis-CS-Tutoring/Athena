@@ -60,14 +60,17 @@ const FormShadow = styled.div`
   // margin-right: -2em;
 `;
 
-const PageBackground = styled.div`
-
-`;
+const PageBackground = styled.div``;
 
 const FormColumn = styled.div`
   background-color: white;
   padding: 2em;
 `;
+
+const centerColumnStyle = {
+  paddingLeft: '10px',
+  paddingRight: '10px',
+};
 
 class AthenaRegisterPage extends React.Component {
   constructor(props) {
@@ -87,17 +90,17 @@ class AthenaRegisterPage extends React.Component {
       case 'December':
       case 'January':
       case 'February':
-        return { term: 'Winter', year: date.add(2, 'month') };
+        return { term: 'Winter', year: date.add(2, 'month'), short: 'W' };
       case 'March':
       case 'April':
-        return { term: 'Spring', year: date };
+        return { term: 'Spring', year: date, short: 'S' };
       case 'May':
       case 'June':
       case 'July':
       case 'August':
       case 'September':
       case 'October':
-        return { term: 'Fall', year: date };
+        return { term: 'Fall', year: date, short: 'F' };
     }
   }
 
@@ -111,7 +114,11 @@ class AthenaRegisterPage extends React.Component {
           'YYYY',
         )}`;
 
-        this.setState({ signUpTerm: usedDate });
+        const shortDate = `${resolvedObject.short}${resolvedObject.year.format(
+          'YY',
+        )}`;
+
+        this.setState({ signUpTerm: { full: usedDate, short: shortDate } });
       })
       .catch(error => {
         console.log('Could not get current term. TODO: show sadface.');
@@ -120,6 +127,7 @@ class AthenaRegisterPage extends React.Component {
   }
 
   render() {
+    console.log('AAAJNAKJASNJSDAS', this.state.signUpTerm);
     return (
       <PageBackground>
         <Helmet>
@@ -132,9 +140,9 @@ class AthenaRegisterPage extends React.Component {
         <Container>
           <Row>
             <Col md={2} sm={1} />
-            <Col>
+            <Col md={8} sm={10} xs={12} style={centerColumnStyle}>
               <FormColumn className="shadow">
-                  <RegistrationForm signUpTerm={this.state.signUpTerm} />
+                <RegistrationForm signUpTerm={this.state.signUpTerm} />
               </FormColumn>
             </Col>
             <Col md={2} sm={1} />

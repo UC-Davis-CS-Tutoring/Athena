@@ -3,7 +3,7 @@ import 'firebase/database';
 import firebase from './base';
 
 const firestore = firebase.firestore();
-const settings = {timestampsInSnapshots: true};
+const settings = { timestampsInSnapshots: true };
 firestore.settings(settings);
 
-export default firebase;
+export default firestore;

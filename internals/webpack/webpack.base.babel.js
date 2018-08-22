@@ -115,7 +115,10 @@ module.exports = options => ({
     ],
   },
   plugins: options.plugins.concat([
-    new webpack.ContextReplacementPlugin(/moment[\\\/]locale$/, /^\.\/(en|de|cz|eu)$/),
+    new webpack.ContextReplacementPlugin(
+      /moment[\\\/]locale$/,
+      /^\.\/(en|de|cz|eu)$/,
+    ),
     new MomentLocalesPlugin(),
     new MomentLocalesPlugin({
       localesToKeep: ['es-us', 'ru'],
@@ -140,6 +143,9 @@ module.exports = options => ({
   resolve: {
     modules: ['node_modules', 'app'],
     extensions: ['.js', '.jsx', '.react.js'],
+    alias: {
+      moment$: 'moment/moment.js',
+    },
     mainFields: ['browser', 'jsnext:main', 'main'],
   },
   devtool: options.devtool,
