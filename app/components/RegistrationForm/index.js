@@ -1,5 +1,13 @@
 import React from 'react';
-import { Button, Form, FormGroup, Label, Input, FormText } from 'reactstrap';
+import {
+  Button,
+  Form,
+  FormGroup,
+  Label,
+  Input,
+  FormText,
+  Alert,
+} from 'reactstrap';
 import { createStructuredSelector } from 'reselect';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
@@ -9,6 +17,10 @@ import styled from 'styled-components';
 import $ from 'jquery';
 import firestore from 'database/store';
 import LoginButton from 'components/LoginButton';
+import axios from 'axios';
+
+import { generateRequestUrl } from 'utils/davisClassUtils';
+
 const FormTitle = styled.div`
   margin-bottom: 2em;
 `;
@@ -17,38 +29,294 @@ const FormTitle = styled.div`
 class RegistrationForm extends React.Component {
   constructor(props) {
     super(props);
+
+    this.validationMap = {
+      takingClasses: this.validateClassSchedule,
+      classScheduleImage: this.uploadToImgur,
+    };
+
+    this.state = {
+      success: false,
+    };
   }
 
   getEmailName = email => email.substring(0, email.lastIndexOf('@'));
 
-  getAllFormData = e => {
+  uploadToImgur = element => {
+    if ($('#storedImage').val()) {
+      const obj = JSON.parse($('#storedImage').val());
+
+      const apiUrl = 'https://api.imgur.com/3/image/';
+      const apiKey = '37f4a3916864230';
+      console.log('Deletion:', `${apiUrl}${obj.deleteHash}`);
+      const settings = {
+        async: false,
+        crossDomain: true,
+        processData: false,
+        contentType: false,
+        type: 'DELETE',
+        url: `${apiUrl}${obj.deleteHash}`,
+        headers: {
+          Authorization: `Client-ID ${apiKey}`,
+          Accept: 'application/json',
+        },
+        mimeType: 'multipart/form-data',
+      };
+
+      $.ajax(settings).done(resp => {
+        // noop
+        console.log('Deletion', resp);
+      });
+    }
+
+    return new Promise((resolve, reject) => {
+      const $files = element.get(0).files;
+
+      if ($files.length) {
+        // Reject big files
+        if ($files[0].size > element.data('max-size') * 1024) {
+          console.log('Please select a smaller file');
+          return false;
+        }
+
+        // Begin file upload
+        console.log('Uploading file to Imgur..');
+
+        // Replace ctrlq with your own API key
+        const apiUrl = 'https://api.imgur.com/3/image';
+        const apiKey = '37f4a3916864230';
+
+        const settings = {
+          crossDomain: true,
+          processData: false,
+          contentType: false,
+          type: 'POST',
+          url: apiUrl,
+          headers: {
+            Authorization: `Client-ID ${apiKey}`,
+            Accept: 'application/json',
+          },
+          mimeType: 'multipart/form-data',
+        };
+
+        const formData = new FormData();
+        formData.append('image', $files[0]);
+        settings.data = formData;
+
+        // Response contains stringified JSON
+        // Image URL available at response.data.link
+        $.ajax(settings).done(resp => {
+          const response = JSON.parse(resp).data;
+          $('#storedImage').val(
+            JSON.stringify({
+              id: response.id,
+              deleteHash: response.deletehash,
+            }),
+          );
+          console.log({
+            id: response.id,
+            deleteHash: response.deletehash,
+          });
+          resolve();
+        });
+      }
+    });
+  };
+
+  validateClassSchedule = element => {
+    const schedule = /[0-9]+/g;
+    const results = element
+      .val()
+      .match(schedule)
+      .filter((v, i, a) => a.indexOf(v) === i);
+    const getList = results.map(crn =>
+      generateRequestUrl(crn, this.props.signUpTerm.termInfo.termCode),
+    );
+
+    return new Promise((resolve, reject) => {
+      axios.all(getList).then(
+        resp => {
+          console.log('Landed here');
+          const locationList = [];
+          const failedList = [];
+          let noScript = true;
+          resp.forEach((r, i) => {
+            const elem = $.parseHTML(r.data, document, true);
+            if ($(elem).filter('script').length) {
+              noScript = false;
+              failedList.push(results[i]);
+            } else {
+              const baseElement = $(elem)
+                .find('strong:contains("Meeting Times:")')
+                .parent()
+                .parent()
+                .parent()
+                .children();
+
+              baseElement.each((index, item) => {
+                if (index === 0) {
+                  return;
+                }
+
+                let baseTime = '';
+
+                $(item)
+                  .find('td')
+                  .each((ind, it) => {
+                    if (ind === 2) {
+                      return;
+                    }
+                    baseTime += $(it).text();
+                  });
+                locationList.push(
+                  `${results[i]};${baseTime.replace(/\s/g, '')}`,
+                );
+              });
+            }
+          });
+          if (noScript === true) {
+            $('#takingClasses').removeClass('is-invalid');
+            $('#currentClassesAlert').hide();
+            $('#scheduleTimes').val(locationList.join('|'));
+            resolve();
+          } else {
+            reject();
+            $('#takingClasses').addClass('is-invalid');
+            $('#currentClassesAlert')
+              .text(`Invalid CRNs: ${failedList.join(',')}`)
+              .removeAttr('hidden')
+              .show();
+            $('html, body').animate(
+              {
+                scrollTop: $('#takingClasses').offset().top,
+              },
+              200,
+            );
+          }
+        },
+        _ => {
+          reject();
+        },
+      );
+    });
+  };
+
+  processFormData = e => {
+    const mapObj = this.validationMap;
     e.preventDefault();
-    const formObject = {};
+
+    $('#regFormSubmit')
+      .text('Submitting... (May take some time)')
+      .attr('disabled', true);
+
+    const validationChecks = [];
     $('#RegistrationForm input').each(function() {
       const input = $(this); // This is the jquery object of the input, do what you will
-      let value = input.val() || input.attr('placeholder') || '';
-      if (input.attr('type') === 'number' && value && value.length > 0) {
-        value = parseFloat(value);
-      }
       const id = input.attr('id');
-      formObject[id] = value;
+      if (id in mapObj) {
+        validationChecks.push(mapObj[id](input));
+      }
     });
 
-    const { givenEmail, term } = formObject;
-    const documentTag = this.getEmailName(givenEmail);
+    Promise.all(validationChecks)
+      .then(
+        _ => {
+          const formObject = {};
 
-    console.log(formObject);
+          $('#RegistrationForm input').each(function() {
+            const input = $(this); // This is the jquery object of the input, do what you will
+            if (input.attr('ignored')) {
+              return;
+            }
+            const id = input.attr('id');
+            let value = input.val() || input.attr('placeholder') || '';
+            if (input.attr('type') === 'number' && value && value.length > 0) {
+              value = parseFloat(value);
+            }
+
+            formObject[id] = value;
+          });
+
+          const { givenEmail, term } = formObject;
+          const documentTag = this.getEmailName(givenEmail);
+
+          firestore
+            .collection('registration')
+            .doc(term.toLowerCase())
+            .collection('applications')
+            .doc(documentTag.toLowerCase())
+            .set(formObject);
+          this.setState({ success: true });
+        },
+        _ => {
+          // Noop, since it was rejected
+        },
+      )
+      .finally(() => {
+        $('#regFormSubmit')
+          .text('Submit')
+          .attr('disabled', false);
+      });
+  };
+
+  populateFields = props => {
+    $('#regFormSubmit')
+      .text('Submit')
+      .attr('disabled', false);
+
+    const term = props.signUpTerm.short;
+    const documentTag = this.getEmailName(props.currentUser.email);
 
     firestore
       .collection('registration')
       .doc(term.toLowerCase())
       .collection('applications')
       .doc(documentTag.toLowerCase())
-      .set(formObject);
+      .get()
+      .then(doc => {
+        if (doc.exists) {
+          $('#RegistrationForm input').each(function() {
+            const input = $(this); // This is the jquery object of the input, do what you will
+            const id = input.attr('id');
+            const serverValue = doc.data()[id];
+            const value = input.val() || '';
+
+            if (value === '') {
+              input.val(serverValue);
+            }
+          });
+        } else {
+          // doc.data() will be undefined in this case
+          console.log('No such document!');
+        }
+      })
+      .catch(error => {
+        console.log('Error getting document:', error);
+      });
+  };
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.success && !this.state.success) {
+      this.populateFields(this.props);
+    }
+  }
+  componentWillReceiveProps = nextProps => {
+    if (
+      this.props.signUpTerm === null &&
+      nextProps.signUpTerm !== null &&
+      nextProps.currentUser !== null
+    ) {
+      this.populateFields(nextProps);
+    }
   };
 
+  componentDidMount() {}
+
   render() {
-    if (this.props.currentUser && this.props.signUpTerm) {
+    if (
+      !this.state.success &&
+      this.props.currentUser &&
+      this.props.signUpTerm
+    ) {
       return (
         <div id="RegistrationForm">
           <FormTitle>
@@ -75,12 +343,13 @@ class RegistrationForm extends React.Component {
                 Here are the minimum hour requirements (if you sign up for
                 units):{' '}
                 <ul>
-                  <li>1 unit = 3 hours/week</li> <li>2 units = 6 hours/week</li>
+                  <li>1 unit = 3 hours/week</li>
+                  <li>2 units = 6 hours/week</li>
                 </ul>
               </li>
             </ul>
           </FormText>
-          <Form onSubmit={e => this.getAllFormData(e)}>
+          <Form onSubmit={e => this.processFormData(e)}>
             <FormGroup>
               <Label for="givenName">Registered Name</Label>
               <Input
@@ -118,6 +387,11 @@ class RegistrationForm extends React.Component {
               />
             </FormGroup>
             <FormGroup>
+              <Label for="logOutLabel">Not You?</Label>
+              <br />
+              <LoginButton />
+            </FormGroup>
+            <FormGroup>
               <Label for="customName">
                 What should we call you, if different than above?
               </Label>
@@ -140,7 +414,8 @@ class RegistrationForm extends React.Component {
             </FormGroup>
             <FormGroup>
               <Label for="takingClasses">
-                What classes will you take in {this.props.signUpTerm.full}? *{' '}
+                What are the CRNs for the classes you will take in{' '}
+                {this.props.signUpTerm.full}? *{' '}
               </Label>
               <Input
                 name="takingClasses"
@@ -149,8 +424,46 @@ class RegistrationForm extends React.Component {
                 type="text"
               />
               <small id="takingClassesHelp" className="form-text text-muted">
-                Example: 60, 154A, 122A
+                Example: 25636, 78098, 43503. Make sure these match up wih the
+                schedule you email us (described below).
               </small>
+              <Alert id="currentClassesAlert" hidden color="danger" />
+            </FormGroup>
+            <FormGroup>
+              <Label for="classScheduleImage">
+                Please attach a screenshot of your schedule for{' '}
+                {this.props.signUpTerm.full}. *{' '}
+              </Label>
+              <Input
+                name="classScheduleImage"
+                id="classScheduleImage"
+                required
+                type="file"
+                accept="image/*"
+                data-max-size="5000"
+                ignored="true"
+              />
+              <small id="takingClassesHelp" className="form-text text-muted">
+                Since tutors meet once a week, we'd like to meet at a time when
+                most of the tutors can attend. In order to find a good meeting
+                time, please send a screenshot of your current{' '}
+                {`${this.props.signUpTerm.full}`} schedule as seen on Schedule
+                Builder to ucdcstutoring@gmail.com with your name and ID. If
+                your schedule changes (class swap, getting off waitlist), please
+                revisit this form and update your CRNs and class schedule.
+              </small>
+            </FormGroup>
+            <FormGroup>
+              <Input
+                name="storedImage"
+                id="storedImage"
+                disabled
+                json="true"
+                hidden
+              />
+            </FormGroup>
+            <FormGroup>
+              <Input name="scheduleTimes" id="scheduleTimes" disabled hidden />
             </FormGroup>
             <FormGroup>
               <Label for="tutoredClasses">
@@ -189,34 +502,43 @@ class RegistrationForm extends React.Component {
               <Label for="anythingElse">
                 Anything you would like us to know?
               </Label>
-              <Input name="commonEmail" id="commonEmail" type="text" />
-              <small id="commonEmailHelp" className="form-text text-muted">
-                This should be whichever email address you check most
-                frequently, as we&apos;ll be sending time-sensitive emails
-                occasionally.
-              </small>
+              <Input name="anythingElse" id="anythingElse" type="text" />
             </FormGroup>
-            <h4>[Action Required] Scheduled Meetings</h4>
-            <FormText color="muted">
-              Since tutors meet once a week, we'd like to meet at a time when
-              most of the tutors can attend. In order to find a good meeting
-              time, please send a screenshot of your current{' '}
-              {`${this.props.signUpTerm.full}`} schedule as seen on Schedule
-              Builder to ucdcstutoring@gmail.com with your name and ID. We'll
-              adjust accordingly if you swap classes later on or get off from a
-              waitlisted class
-            </FormText>
             <br />
-            <Button>Submit</Button>
+            <Button id="regFormSubmit">Submit</Button>
           </Form>
         </div>
       );
+    } else if (
+      this.state.success &&
+      this.props.currentUser &&
+      this.props.signUpTerm
+    ) {
+      return (
+        <div id="RegistrationForm">
+          Thanks for applying to be a tutor! Students really appreciate the
+          help, and we look forward to working with you next quarter. We'll be
+          in touch within two weeks of the start of the quarter.
+          <br />
+          <br />
+          <Button
+            id="editForm"
+            onClick={() => {
+              this.setState({ success: false });
+            }}
+          >
+            Edit Your Application
+          </Button>
+        </div>
+      );
+    } else if (!this.props.currentUser && this.props.signUpTerm) {
+      return (
+        <div>
+          <LoginButton />
+        </div>
+      );
     }
-    return (
-      <div>
-        <LoginButton />
-      </div>
-    );
+    return <div>I'm a loadin', gimmie a second</div>;
   }
 }
 

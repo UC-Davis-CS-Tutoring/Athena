@@ -58,18 +58,20 @@ class AthenaInterfacePage extends React.Component {
     return (
       <div>
         <Helmet>
-          <title>Feature Page</title>
+          <title>Athena</title>
           <meta
             name="description"
-            content="Feature page of React.js Boilerplate application"
+            content="Not yet here..."
           />
         </Helmet>
         <div>
           <H1>
-            <FormattedMessage {...messages.header} />
+            Under Construction!
+            {/*<FormattedMessage {...messages.header} />*/}
           </H1>
           {/* {this.props.user.displayName} */}
           <LoginButton />
+          Check back soon!
         </div>
       </div>
     );

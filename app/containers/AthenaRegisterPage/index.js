@@ -44,7 +44,7 @@ import styled from 'styled-components';
 
 import functions from 'database/functions';
 import moment from 'moment';
-
+import { getTermInfo } from 'utils/davisClassUtils';
 // import { makeSelectCurrentUser } from "./selectors";
 
 // import auth from 'database/auth';
@@ -82,43 +82,17 @@ class AthenaRegisterPage extends React.Component {
     this.populateCurrentSignUpTerm();
   }
 
-  // todo: move this out
-
-  getMonthName(monthName, date) {
-    switch (monthName) {
-      case 'November':
-      case 'December':
-      case 'January':
-      case 'February':
-        return { term: 'Winter', year: date.add(2, 'month'), short: 'W' };
-      case 'March':
-      case 'April':
-        return { term: 'Spring', year: date, short: 'S' };
-      case 'May':
-      case 'June':
-      case 'July':
-      case 'August':
-      case 'September':
-      case 'October':
-        return { term: 'Fall', year: date, short: 'F' };
-    }
-  }
-
   populateCurrentSignUpTerm() {
     const timestamp = functions.httpsCallable('getTimeStamp');
     timestamp()
       .then(result => {
         const term = moment(parseInt(result.data, 10));
-        const resolvedObject = this.getMonthName(term.format('MMMM'), term);
-        const usedDate = `${resolvedObject.term} ${resolvedObject.year.format(
-          'YYYY',
-        )}`;
+        const resolvedObject = getTermInfo(term);
+        const usedDate = `${resolvedObject.term} ${resolvedObject.year}`;
 
-        const shortDate = `${resolvedObject.short}${resolvedObject.year.format(
-          'YY',
-        )}`;
+        const shortDate = `${resolvedObject.short}${resolvedObject.year}`;
 
-        this.setState({ signUpTerm: { full: usedDate, short: shortDate } });
+        this.setState({ signUpTerm: { full: usedDate, short: shortDate, termInfo: resolvedObject  } });
       })
       .catch(error => {
         console.log('Could not get current term. TODO: show sadface.');
@@ -127,14 +101,13 @@ class AthenaRegisterPage extends React.Component {
   }
 
   render() {
-    console.log('AAAJNAKJASNJSDAS', this.state.signUpTerm);
     return (
       <PageBackground>
         <Helmet>
-          <title>Feature Page</title>
+          <title>Registration Form for ECS197T</title>
           <meta
             name="description"
-            content="Feature page of React.js Boilerplate application"
+            content="Sign up link for ECS 197T"
           />
         </Helmet>
         <Container>
@@ -146,6 +119,9 @@ class AthenaRegisterPage extends React.Component {
               </FormColumn>
             </Col>
             <Col md={2} sm={1} />
+
+
+
           </Row>
         </Container>
       </PageBackground>
