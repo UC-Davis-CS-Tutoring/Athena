@@ -6,11 +6,10 @@
 
 import React from 'react';
 // import PropTypes from 'prop-types';
-import { Helmet } from 'react-helmet';
-import { FormattedMessage } from 'react-intl';
-import { connect } from 'react-redux';
-import { compose } from 'redux';
-import { createStructuredSelector } from 'reselect';
+import {Helmet} from 'react-helmet';
+import {connect} from 'react-redux';
+import {compose} from 'redux';
+import {createStructuredSelector} from 'reselect';
 
 import 'bootstrap/dist/css/bootstrap.css';
 
@@ -28,23 +27,19 @@ import injectReducer from 'utils/injectReducer';
 // import Form from './Form';
 // import Input from './Input';
 // import Section from './Section';
-import messages from './messages';
 // import { loadRepos } from '../App/actions';
 import reducer from './reducer';
 import RegistrationForm from 'components/RegistrationForm';
 
-import { Container, Row, Col } from 'reactstrap';
-
-// import saga from './saga';
-
-import H1 from 'components/H1';
-import LoginButton from 'components/LoginButton';
-import { makeSelectCurrentUser } from 'containers/App/selectors';
+import {Col, Container, Row} from 'reactstrap';
+import {makeSelectCurrentUser} from 'containers/App/selectors';
 import styled from 'styled-components';
 
 import functions from 'database/functions';
 import moment from 'moment';
-import { getTermInfo } from 'utils/davisClassUtils';
+import {getTermInfo} from 'utils/davisClassUtils';
+
+// import saga from './saga';
 // import { makeSelectCurrentUser } from "./selectors";
 
 // import auth from 'database/auth';
@@ -92,11 +87,18 @@ class AthenaRegisterPage extends React.Component {
 
         const shortDate = `${resolvedObject.short}${resolvedObject.year}`;
 
-        this.setState({ signUpTerm: { full: usedDate, short: shortDate, termInfo: resolvedObject  } });
+        this.setState({
+          signUpTerm: {
+            full: usedDate,
+            short: shortDate,
+            termInfo: resolvedObject,
+          },
+        });
       })
       .catch(error => {
         console.log('Could not get current term. TODO: show sadface.');
         console.log(error);
+        console.log('??');
       });
   }
 
@@ -105,10 +107,7 @@ class AthenaRegisterPage extends React.Component {
       <PageBackground>
         <Helmet>
           <title>Registration Form for ECS197T</title>
-          <meta
-            name="description"
-            content="Sign up link for ECS 197T"
-          />
+          <meta name="description" content="Sign up link for ECS 197T"/>
         </Helmet>
         <Container>
           <Row>
@@ -119,9 +118,6 @@ class AthenaRegisterPage extends React.Component {
               </FormColumn>
             </Col>
             <Col md={2} sm={1} />
-
-
-
           </Row>
         </Container>
       </PageBackground>

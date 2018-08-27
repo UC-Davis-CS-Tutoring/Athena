@@ -19,7 +19,7 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const moment = require('moment');
 const axios = require('axios');
-const jsdom = require("jsdom");
+const jsdom = require('jsdom');
 const { JSDOM } = jsdom;
 const { window } = new JSDOM(`<!DOCTYPE html>`);
 const $ = require('jquery')(window);
@@ -27,8 +27,6 @@ const $ = require('jquery')(window);
 const cors = require('cors')({
   origin: true,
 });
-
-
 
 admin.initializeApp();
 
@@ -73,7 +71,7 @@ firestore.settings(settings);
 // // [END presence_sync_function]
 
 function wrap(object) {
-  return {data: object}
+  return {data: object};
 }
 
 exports.getTimeStamp = functions.https.onRequest((req, res) => {
@@ -94,24 +92,23 @@ function generateRequestUrl(crn, termCode) {
   const params = $.param({ crn, termCode });
 
   return axios.get(`${baseUrl}?${params}`);
-};
-
+}
 
 exports.testFunction = functions.https.onRequest((req, res) => {
-
   if (!('crns' in req.query) || !('term' in req.query)) {
     return res.status(400).send('Missing parameter');
   }
 
-  const crns = Array.isArray(req.query['crns']) ? req.query['crns'] : [req.query['crns']];
-  const getList = crns.map(function(crn) {
+  const crns = Array.isArray(req.query['crns'])
+    ? req.query['crns']
+    : [req.query['crns']];
+  const getList = crns.map(crn => {
     generateRequestUrl(crn, req.params['term']);
   });
 
-
-  return new Promise(function(resolve, reject) {
+  return new Promise((resolve, reject) => {
     return cors(req, res, () => {
-      res.status(200).send("hi");
+      res.status(200).send('hi');
     });
   });
 });

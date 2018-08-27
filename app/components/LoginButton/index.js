@@ -1,17 +1,17 @@
 import React from 'react';
 import firebase from 'database/auth';
-import { Button } from 'reactstrap';
-import { createStructuredSelector } from 'reselect';
-import { connect } from 'react-redux';
-import { compose } from 'redux';
-import { makeSelectCurrentUser } from 'containers/App/selectors';
-import PropTypes from "prop-types";
+import {Button} from 'reactstrap';
+import {createStructuredSelector} from 'reselect';
+import {connect} from 'react-redux';
+import {compose} from 'redux';
+import {makeSelectCurrentUser} from 'containers/App/selectors';
+import PropTypes from 'prop-types';
 // import messages from './messages';
 
 const provider = new firebase.auth.GoogleAuthProvider();
 
 provider.setCustomParameters({
-  hd: 'gmail.com',
+  hd: 'ucdavis.edu',
 });
 
 /* eslint-disable react/prefer-stateless-function */
@@ -79,6 +79,4 @@ const withConnect = connect(
   null,
 );
 
-export default compose(
-  withConnect,
-)(LoginButton);
+export default compose(withConnect)(LoginButton);

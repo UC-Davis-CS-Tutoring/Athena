@@ -2,14 +2,13 @@
  * Create the store with dynamic reducers
  */
 
-import { createStore, applyMiddleware, compose } from 'redux';
-import { fromJS } from 'immutable';
-import { routerMiddleware } from 'react-router-redux';
+import {applyMiddleware, compose, createStore} from 'redux';
+import {fromJS} from 'immutable';
+import {routerMiddleware} from 'react-router-redux';
 import createSagaMiddleware from 'redux-saga';
 import createReducer from './reducers';
-import { athenaSignInTrigger } from 'containers/App/actions';
+import {athenaSignInTrigger} from 'containers/App/actions';
 import 'database/presence';
-
 
 const sagaMiddleware = createSagaMiddleware();
 

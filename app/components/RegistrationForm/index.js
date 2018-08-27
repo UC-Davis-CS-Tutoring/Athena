@@ -1,17 +1,9 @@
 import React from 'react';
-import {
-  Button,
-  Form,
-  FormGroup,
-  Label,
-  Input,
-  FormText,
-  Alert,
-} from 'reactstrap';
-import { createStructuredSelector } from 'reselect';
-import { connect } from 'react-redux';
-import { compose } from 'redux';
-import { makeSelectCurrentUser } from 'containers/App/selectors';
+import {Alert, Button, Form, FormGroup, FormText, Input, Label,} from 'reactstrap';
+import {createStructuredSelector} from 'reselect';
+import {connect} from 'react-redux';
+import {compose} from 'redux';
+import {makeSelectCurrentUser} from 'containers/App/selectors';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import $ from 'jquery';
@@ -19,7 +11,7 @@ import firestore from 'database/store';
 import LoginButton from 'components/LoginButton';
 import axios from 'axios';
 
-import { generateRequestUrl } from 'utils/davisClassUtils';
+import {generateRequestUrl} from 'utils/davisClassUtils';
 
 const FormTitle = styled.div`
   margin-bottom: 2em;
@@ -50,7 +42,6 @@ class RegistrationForm extends React.Component {
       const apiKey = '37f4a3916864230';
       console.log('Deletion:', `${apiUrl}${obj.deleteHash}`);
       const settings = {
-        async: false,
         crossDomain: true,
         processData: false,
         contentType: false,
@@ -113,10 +104,6 @@ class RegistrationForm extends React.Component {
               deleteHash: response.deletehash,
             }),
           );
-          console.log({
-            id: response.id,
-            deleteHash: response.deletehash,
-          });
           resolve();
         });
       }
@@ -136,7 +123,6 @@ class RegistrationForm extends React.Component {
     return new Promise((resolve, reject) => {
       axios.all(getList).then(
         resp => {
-          console.log('Landed here');
           const locationList = [];
           const failedList = [];
           let noScript = true;
@@ -285,6 +271,12 @@ class RegistrationForm extends React.Component {
               input.val(serverValue);
             }
           });
+
+          if ($('#storedImage').val()) {
+            $('#classScheduleImage')
+              .attr('required', false)
+              .attr('title', 'Using previously uploaded image');
+          }
         } else {
           // doc.data() will be undefined in this case
           console.log('No such document!');
@@ -361,7 +353,7 @@ class RegistrationForm extends React.Component {
             </FormGroup>
             <FormGroup>
               <Input
-                placeholder={this.props.signUpTerm.short}
+                placeholder={this.props.signUpTerm.short.toLowerCase()}
                 name="term"
                 id="term"
                 disabled
@@ -425,7 +417,14 @@ class RegistrationForm extends React.Component {
               />
               <small id="takingClassesHelp" className="form-text text-muted">
                 Example: 25636, 78098, 43503. Make sure these match up wih the
-                schedule you email us (described below).
+                schedule you email us (described below). You can find these
+                function{' '}
+                <a
+                  target="_blank"
+                  href="https://my.ucdavis.edu/schedulebuilder/index.cfm?sb"
+                >
+                  ScheduleBuilder.
+                </a>
               </small>
               <Alert id="currentClassesAlert" hidden color="danger" />
             </FormGroup>
@@ -446,11 +445,17 @@ class RegistrationForm extends React.Component {
               <small id="takingClassesHelp" className="form-text text-muted">
                 Since tutors meet once a week, we'd like to meet at a time when
                 most of the tutors can attend. In order to find a good meeting
-                time, please send a screenshot of your current{' '}
-                {`${this.props.signUpTerm.full}`} schedule as seen on Schedule
-                Builder to ucdcstutoring@gmail.com with your name and ID. If
-                your schedule changes (class swap, getting off waitlist), please
-                revisit this form and update your CRNs and class schedule.
+                time, please attach a screenshot of your current{' '}
+                {`${this.props.signUpTerm.full}`} schedule as seen on{' '}
+                <a
+                  target="_blank"
+                  href="https://my.ucdavis.edu/schedulebuilder/index.cfm?sb"
+                >
+                  ScheduleBuilder.
+                </a>{' '}
+                If your schedule changes (class swap, getting off waitlist),
+                please revisit this form and update your CRNs and class
+                schedule.
               </small>
             </FormGroup>
             <FormGroup>
@@ -484,10 +489,13 @@ class RegistrationForm extends React.Component {
             </FormGroup>
             <FormGroup>
               <Label for="gpa">What is your cumulative CS GPA? *</Label>
-              <Input name="gpa" id="gpa" required type="number" />
+              <Input name="gpa" id="gpa" required type="number" step="0.01"/>
               <small id="gpaHelp" className="form-text text-muted">
                 Must be a 3.0 or higher. You can find your CS GPA by going to
-                <a href="https://oasis.ucdavis.edu"> oasis.ucdavis.edu. </a>
+                <a target="_blank" href="https://oasis.ucdavis.edu">
+                  {' '}
+                  oasis.ucdavis.edu.{' '}
+                </a>
                 Look specifically under GPA Charts & Tools > GPA Per Subject and
                 report your CS GPA. This will be subject to verification by the
                 CS Department.

@@ -6,11 +6,10 @@
 
 import React from 'react';
 // import PropTypes from 'prop-types';
-import { Helmet } from 'react-helmet';
-import { FormattedMessage } from 'react-intl';
-import { connect } from 'react-redux';
-import { compose } from 'redux';
-import { createStructuredSelector } from 'reselect';
+import {Helmet} from 'react-helmet';
+import {connect} from 'react-redux';
+import {compose} from 'redux';
+import {createStructuredSelector} from 'reselect';
 
 import 'bootstrap/dist/css/bootstrap.css';
 
@@ -28,17 +27,15 @@ import injectReducer from 'utils/injectReducer';
 // import Form from './Form';
 // import Input from './Input';
 // import Section from './Section';
-import messages from './messages';
 // import { loadRepos } from '../App/actions';
 import reducer from './reducer';
-// import saga from './saga';
-
 import H1 from 'components/H1';
 import LoginButton from 'components/LoginButton';
 
-import { makeSelectCurrentUser } from 'containers/App/selectors';
+import {makeSelectCurrentUser} from 'containers/App/selectors';
 
 import functions from 'database/functions';
+// import saga from './saga';
 
 // import { makeSelectCurrentUser } from "./selectors";
 
@@ -59,15 +56,12 @@ class AthenaInterfacePage extends React.Component {
       <div>
         <Helmet>
           <title>Athena</title>
-          <meta
-            name="description"
-            content="Not yet here..."
-          />
+          <meta name="description" content="Not yet here..."/>
         </Helmet>
         <div>
           <H1>
             Under Construction!
-            {/*<FormattedMessage {...messages.header} />*/}
+            {/* <FormattedMessage {...messages.header} /> */}
           </H1>
           {/* {this.props.user.displayName} */}
           <LoginButton />
