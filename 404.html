@@ -31,6 +31,10 @@
       (l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '') +
       l.hash
     );
+
+    setTimeout(()=> {
+      window.location.reload(true)
+    }, 1000);
   </script>
 </head>
 <body>
