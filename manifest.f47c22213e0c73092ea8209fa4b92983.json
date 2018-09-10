@@ -56,12 +56,12 @@
       "type": "image/png"
     }
   ],
-  "name": "React Boilerplate",
-  "short_name": "React BP",
+  "name": "UCDCSTC | Olympian",
+  "short_name": "UCD Olympian",
   "orientation": "portrait",
   "display": "standalone",
   "start_url": ".",
-  "description": "My React Boilerplate-based project!",
+  "description": "Tutoring Suite by the Davis CS Tutoring Club",
   "background_color": "#fafafa",
   "theme_color": "#b1624d"
 }
