@@ -23,31 +23,31 @@
     // https://username.github.io/repo-name/?p=/one/two&q=a=b~and~c=d#qwe
     // Otherwise, leave segmentCount as 0.
 
-    (function (){
+    (function () {
       var rep = /.*\?.*/,
         links = document.getElementsByTagName('link'),
         scripts = document.getElementsByTagName('script'),
         process_scripts = false;
-      for (var i=0;i<links.length;i++){
+      for (var i = 0; i < links.length; i++) {
         var link = links[i],
           href = link.href;
-        if(rep.test(href)){
-          link.href = href+'&'+Date.now();
+        if (rep.test(href)) {
+          link.href = href + '&' + Date.now();
         }
-        else{
-          link.href = href+'?'+Date.now();
+        else {
+          link.href = href + '?' + Date.now();
         }
 
       }
-      if(process_scripts){
-        for (var i=0;i<scripts.length;i++){
+      if (process_scripts) {
+        for (var i = 0; i < scripts.length; i++) {
           var script = scripts[i],
             src = script.src;
-          if(rep.test(src)){
-            script.src = src+'&'+Date.now();
+          if (rep.test(src)) {
+            script.src = src + '&' + Date.now();
           }
-          else{
-            script.src = src+'?'+Date.now();
+          else {
+            script.src = src + '?' + Date.now();
           }
 
         }
