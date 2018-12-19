@@ -49,6 +49,14 @@ interactively pick exactly the changes you wish to include in your commit. This
 prevents unintentionally including temporary or sensitive files in your
 commits, and allows you to make more atomic, single-change commits.
 
+### Coding Style
+Please follow the coding style used in the repository you are contributing to.
+Ideally this will be specified in the CONTRIBUTING.md file, although in some
+cases you may need to read the existing code to get a feel for the style used.
+When starting a new repository, the default coding style should follow the
+respective Google Style Guide (unless otherwise explicitly stated in the
+CONTRIBUTING.md file).
+
 ## Pull Request
 Once the branch is ready, please send a pull request to merge your changes into
 the master branch. Maintainers should be listed in each repositories
